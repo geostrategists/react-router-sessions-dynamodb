@@ -1,22 +1,20 @@
-name: Publish
+name: Code Quality
 
 on:
-  release:
-    types: [published]
-
-env:
-  HUSKY: 0
-
-permissions:
-  id-token: write
+  pull_request:
+  push:
+    branches: ["main"]
 
 jobs:
-  publish:
-    name: Publish
+  quality-check:
+    name: Check Code Quality
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Cache .yarn/cache
@@ -41,17 +39,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Generate archives
-        run: yarn packages:pack
+      - name: Run ESLint
+        run: yarn lint
 
-      - name: Publish with latest tag
-        if: "!github.event.release.prerelease"
-        run: yarn packages:publish:provenance --tag latest --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Check code formatting
+        run: yarn format:check
 
-      - name: Publish with next tag
-        if: "github.event.release.prerelease"
-        run: yarn packages:publish:provenance --tag next --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Run Typecheck
+        run: yarn typecheck
