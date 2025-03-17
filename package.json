@@ -60,7 +60,9 @@
       ".*",
       "tsconfig.json",
       "tsup.config.ts"
-    ]
+    ],
+    "access": "public",
+    "provenance": true
   },
   "lint-staged": {
     "*.{ts,tsx,js,cjs,mjs}": [
