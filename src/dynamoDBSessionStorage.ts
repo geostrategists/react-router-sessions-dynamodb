@@ -1,18 +1,8 @@
 import { ConditionalCheckFailedException, DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DeleteCommand,
-  DynamoDBDocumentClient,
-  GetCommand,
-  PutCommand,
-} from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { createSessionStorage } from "react-router";
 
-import type {
-  FlashSessionData,
-  SessionData,
-  SessionIdStorageStrategy,
-  SessionStorage,
-} from "react-router";
+import type { FlashSessionData, SessionData, SessionIdStorageStrategy, SessionStorage } from "react-router";
 
 interface DynamoDBSessionStorageOptions {
   /**
