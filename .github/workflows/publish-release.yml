@@ -48,10 +48,10 @@ jobs:
         if: "!github.event.release.prerelease"
         run: yarn packages:publish:provenance --tag latest --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
       - name: Publish with next tag
         if: "github.event.release.prerelease"
         run: yarn packages:publish:provenance --tag next --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
