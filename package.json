@@ -68,5 +68,9 @@
       "prettier --write"
     ],
     "!(*.ts|*.tsx|*.js|*.cjs|*.mjs)": "prettier --ignore-unknown --write"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "trailingComma": "all"
   }
 }
