@@ -5,7 +5,7 @@ This package provides a session storage implementation for React Router that use
 ## Installation
 
 ```bash
-npm install @geostrategists/react-router-aws-sessions-dynamodb
+npm install @geostrategists/react-router-sessions-dynamodb
 ```
 
 ## Prerequisites
