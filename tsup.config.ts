@@ -21,7 +21,7 @@ export default defineConfig([
 * LICENSE.md file in the root directory of this source tree.
 *
 * @license MIT
-*/`
+*/`,
     },
   },
 ]);
