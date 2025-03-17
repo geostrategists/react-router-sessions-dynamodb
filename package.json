@@ -60,7 +60,8 @@
       ".*",
       "tsconfig.json",
       "tsup.config.ts"
-    ]
+    ],
+    "provenance": true
   },
   "lint-staged": {
     "*.{ts,tsx,js,cjs,mjs}": [
