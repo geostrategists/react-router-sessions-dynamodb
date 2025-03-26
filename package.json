@@ -30,8 +30,8 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc && tsup",
     "prepack": "yarn build && yarn npmignore --auto",
-    "publish:provenance": "npm publish package.tgz --provenance",
-    "prepare": "husky"
+    "prepare": "husky",
+    "release": "semantic-release"
   },
   "peerDependencies": {
     "@aws-sdk/client-dynamodb": "^3.0.0",
@@ -42,17 +42,36 @@
     "@aws-sdk/client-dynamodb": "^3.767.0",
     "@aws-sdk/lib-dynamodb": "^3.767.0",
     "@eslint/js": "^9.22.0",
+    "@semantic-release/exec": "^7.0.3",
     "eslint": "^9.22.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.0",
     "npmignore": "^0.3.1",
     "prettier": "3.5.3",
     "react-router": "^7.3.0",
+    "semantic-release": "^24.2.3",
     "tsup": "^8.4.0",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.1"
   },
   "packageManager": "yarn@4.7.0+sha256.293632d8a095d8ea4786eb2c5798c83c37544abed17ed31186a3ec4549a07c06",
+  "release": {
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/npm",
+      [
+        "@semantic-release/exec",
+        {
+          "verifyConditionsCmd": "echo //npm.pkg.github.com/:_authToken=${process.env.GITHUB_TOKEN} > /tmp/github.npmrc && npm whoami --userconfig /tmp/github.npmrc --registry https://npm.pkg.github.com/",
+          "publishCmd": "npm publish --userconfig /tmp/github.npmrc --tag ${nextRelease.channel} --registry https://npm.pkg.github.com/ --no-git-tag-version",
+          "successCmd": "rm /tmp/github.npmrc",
+          "failCmd": "rm /tmp/github.npmrc"
+        }
+      ],
+      "@semantic-release/github"
+    ]
+  },
   "publishConfig": {
     "ignore": [
       "!dist/**",
