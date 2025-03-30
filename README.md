@@ -69,15 +69,15 @@ export async function loader({ request }) {
   - `domain`: Cookie domain
 - `sessionMaxAge` (optional): The max age of table entries when no cookie maxAge is set
 
-  > [!NOTE]
-  > By default, react-router only sets session data to expire when the
-  > cookie has a maxAge (or expires date) set. When using session cookies,
-  > such an expiry time does not exist, and in theory, such cookies can be
-  > kept alive by the browser indefinitely.
-  >
-  > However, it can still be desired to let the session data in the table
-  > expire at some point in the near or distant future, which can be set
-  > with the `sessionMaxAge` property.
+> [!NOTE]
+> By default, react-router only sets session data to expire when the
+> cookie has a maxAge (or expires date) set. When using session cookies,
+> such an expiry time does not exist, and in theory, such cookies can be
+> kept alive by the browser indefinitely.
+>
+> However, it can still be desired to let the session data in the table
+> expire at some point in the near or distant future, which can be set
+> with the `sessionMaxAge` property.
 
 ## DynamoDB Table Requirements
 
