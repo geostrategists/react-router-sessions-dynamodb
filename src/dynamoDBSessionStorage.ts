@@ -29,6 +29,15 @@ interface DynamoDBSessionStorageOptions {
   ttl?: string;
 
   /**
+   * The max amount of seconds an entry will be stored if no expiry date is set in createData/updateData.
+   * This can be useful if you want your table data to expire after a certain amount of time, even when using
+   * session cookies (that don't specify a maxAge or expires date).
+   * If absent, only the `expires` date passed to #createData/#updateData (i.e. the maxAge of the cookie)
+   * will result in TTL being set.
+   */
+  sessionMaxAge?: number;
+
+  /**
    * Optional DynamoDB client to use instead of creating a new one.
    */
   client?: DynamoDBDocumentClient | (() => DynamoDBDocumentClient);
@@ -57,6 +66,15 @@ export function createDynamoDBSessionStorage<Data = SessionData, FlashData = Dat
     return _client!;
   };
 
+  const setTTL = (params: Record<string, unknown>, expires: Date | undefined) => {
+    if (props.ttl) {
+      if (props.sessionMaxAge) {
+        expires ??= new Date(Date.now() + props.sessionMaxAge * 1000);
+      }
+      params[props.ttl] = expires ? Math.round(expires.getTime() / 1000) : undefined;
+    }
+  };
+
   return createSessionStorage({
     cookie,
     async createData(data, expires) {
@@ -72,9 +90,7 @@ export function createDynamoDBSessionStorage<Data = SessionData, FlashData = Dat
           [props.idx]: id,
           ...data,
         };
-        if (props.ttl) {
-          params[props.ttl] = expires ? Math.round(expires.getTime() / 1000) : undefined;
-        }
+        setTTL(params, expires);
 
         try {
           await getClient().send(
@@ -116,9 +132,7 @@ export function createDynamoDBSessionStorage<Data = SessionData, FlashData = Dat
         [props.idx]: id,
         ...data,
       };
-      if (props.ttl) {
-        params[props.ttl] = expires ? Math.round(expires.getTime() / 1000) : undefined;
-      }
+      setTTL(params, expires);
       await getClient().send(
         new PutCommand({
           TableName: props.table,
