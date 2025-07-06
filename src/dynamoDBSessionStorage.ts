@@ -87,8 +87,8 @@ export function createDynamoDBSessionStorage<Data = SessionData, FlashData = Dat
         const id = [...randomBytes].map((x) => x.toString(16).padStart(2, "0")).join("");
 
         const params: Record<string, unknown> = {
-          [props.idx]: id,
           ...data,
+          [props.idx]: id,
         };
         setTTL(params, expires);
 
