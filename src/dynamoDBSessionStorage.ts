@@ -12,7 +12,7 @@ import { createSessionStorage } from "react-router";
 import type { BatchWriteCommandInput } from "@aws-sdk/lib-dynamodb";
 import type { FlashSessionData, SessionData, SessionIdStorageStrategy, SessionStorage } from "react-router";
 
-interface DynamoDBSessionStorageOptions {
+interface DynamoDBSessionStorageOptions<Indexes extends string = string> {
   /**
    * The Cookie used to store the session id on the client, or options used
    * to automatically create one.
@@ -55,16 +55,20 @@ interface DynamoDBSessionStorageOptions {
    * attribute they index (the attribute must be the index's partition key).
    * Required for #deleteSessionsBy.
    */
-  indexes?: Record<string, string>;
+  indexes?: Partial<Record<Indexes, string>>;
 }
 
-export interface DynamoDBSessionStorage<Data = SessionData, FlashData = Data> extends SessionStorage<Data, FlashData> {
+export interface DynamoDBSessionStorage<
+  Data = SessionData,
+  FlashData = Data,
+  Indexes extends keyof Data & string = keyof Data & string,
+> extends SessionStorage<Data, FlashData> {
   /**
    * Deletes all sessions whose `attribute` equals `value`. The attribute must
    * be configured as an index in the storage options.
    * Returns the number of deleted sessions.
    */
-  deleteSessionsBy(attribute: keyof Data & string, value: string | number): Promise<number>;
+  deleteSessionsBy<A extends Indexes>(attribute: A, value: NonNullable<Data[A]> & (string | number)): Promise<number>;
 }
 
 const MAX_BATCH_WRITE_RETRIES = 5;
@@ -76,10 +80,11 @@ const MAX_BATCH_WRITE_RETRIES = 5;
  * - Primary key: `id` (string)
  * - Optional TTL attribute (defaults to "_ttl")
  */
-export function createDynamoDBSessionStorage<Data = SessionData, FlashData = Data>({
-  cookie,
-  ...props
-}: DynamoDBSessionStorageOptions): DynamoDBSessionStorage<Data, FlashData> {
+export function createDynamoDBSessionStorage<
+  Data = SessionData,
+  FlashData = Data,
+  Indexes extends keyof Data & string = keyof Data & string,
+>({ cookie, ...props }: DynamoDBSessionStorageOptions<Indexes>): DynamoDBSessionStorage<Data, FlashData, Indexes> {
   let _client: DynamoDBDocumentClient | undefined;
   const getClient = (): DynamoDBDocumentClient => {
     if (!_client) {
@@ -101,7 +106,7 @@ export function createDynamoDBSessionStorage<Data = SessionData, FlashData = Dat
     }
   };
 
-  const deleteSessionsBy = async (attribute: keyof Data & string, value: string | number): Promise<number> => {
+  const deleteSessionsBy = async (attribute: Indexes, value: string | number): Promise<number> => {
     const indexName = props.indexes?.[attribute];
     if (!indexName) {
       throw new Error(`No index configured for attribute "${attribute}"`);
