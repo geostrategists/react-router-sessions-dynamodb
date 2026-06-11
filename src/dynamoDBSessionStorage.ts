@@ -1,7 +1,15 @@
 import { ConditionalCheckFailedException, DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  BatchWriteCommand,
+  DeleteCommand,
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { createSessionStorage } from "react-router";
 
+import type { BatchWriteCommandInput } from "@aws-sdk/lib-dynamodb";
 import type { FlashSessionData, SessionData, SessionIdStorageStrategy, SessionStorage } from "react-router";
 
 interface DynamoDBSessionStorageOptions {
@@ -41,6 +49,22 @@ interface DynamoDBSessionStorageOptions {
    * Optional DynamoDB client to use instead of creating a new one.
    */
   client?: DynamoDBDocumentClient | (() => DynamoDBDocumentClient);
+
+  /**
+   * Global secondary indexes on the sessions table, keyed by the session-data
+   * attribute they index (the attribute must be the index's partition key).
+   * Required for #deleteSessionsBy.
+   */
+  indexes?: Record<string, string>;
+}
+
+export interface DynamoDBSessionStorage<Data = SessionData, FlashData = Data> extends SessionStorage<Data, FlashData> {
+  /**
+   * Deletes all sessions whose `attribute` equals `value`. The attribute must
+   * be configured as an index in the storage options.
+   * Returns the number of deleted sessions.
+   */
+  deleteSessionsBy(attribute: keyof Data & string, value: string | number): Promise<number>;
 }
 
 /**
@@ -53,7 +77,7 @@ interface DynamoDBSessionStorageOptions {
 export function createDynamoDBSessionStorage<Data = SessionData, FlashData = Data>({
   cookie,
   ...props
-}: DynamoDBSessionStorageOptions): SessionStorage<Data, FlashData> {
+}: DynamoDBSessionStorageOptions): DynamoDBSessionStorage<Data, FlashData> {
   let _client: DynamoDBDocumentClient | undefined;
   const getClient = (): DynamoDBDocumentClient => {
     if (!_client) {
@@ -75,7 +99,48 @@ export function createDynamoDBSessionStorage<Data = SessionData, FlashData = Dat
     }
   };
 
-  return createSessionStorage({
+  const deleteSessionsBy = async (attribute: keyof Data & string, value: string | number): Promise<number> => {
+    const indexName = props.indexes?.[attribute];
+    if (!indexName) {
+      throw new Error(`No index configured for attribute "${attribute}"`);
+    }
+
+    let deleted = 0;
+    let lastEvaluatedKey: Record<string, unknown> | undefined;
+    do {
+      const result = await getClient().send(
+        new QueryCommand({
+          TableName: props.table,
+          IndexName: indexName,
+          KeyConditionExpression: "#attr = :value",
+          ExpressionAttributeNames: { "#attr": attribute, "#idx": props.idx },
+          ExpressionAttributeValues: { ":value": value },
+          ProjectionExpression: "#idx",
+          ExclusiveStartKey: lastEvaluatedKey,
+        }),
+      );
+      lastEvaluatedKey = result.LastEvaluatedKey;
+
+      const keys = (result.Items ?? []).map((item) => ({ [props.idx]: item[props.idx] }));
+      for (let i = 0; i < keys.length; i += 25) {
+        let requests: NonNullable<BatchWriteCommandInput["RequestItems"]>[string] = keys
+          .slice(i, i + 25)
+          .map((key) => ({ DeleteRequest: { Key: key } }));
+        while (requests.length > 0) {
+          const batchResult = await getClient().send(
+            new BatchWriteCommand({ RequestItems: { [props.table]: requests } }),
+          );
+          deleted += requests.length;
+          requests = batchResult.UnprocessedItems?.[props.table] ?? [];
+          deleted -= requests.length;
+        }
+      }
+    } while (lastEvaluatedKey);
+
+    return deleted;
+  };
+
+  const sessionStorage = createSessionStorage<Data, FlashData>({
     cookie,
     async createData(data, expires) {
       while (true) {
@@ -149,4 +214,6 @@ export function createDynamoDBSessionStorage<Data = SessionData, FlashData = Dat
       );
     },
   });
+
+  return { ...sessionStorage, deleteSessionsBy };
 }

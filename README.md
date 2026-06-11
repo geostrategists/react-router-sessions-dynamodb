@@ -68,6 +68,22 @@ export async function loader({ request }) {
   - `secure`: Secure attribute
   - `domain`: Cookie domain
 - `sessionMaxAge` (optional): The max age of table entries when no cookie maxAge is set
+- `indexes` (optional): Global secondary indexes on the sessions table, keyed by the session-data attribute they index (the attribute must be the index's partition key). Required for `deleteSessionsBy`.
+
+### Deleting sessions by attribute
+
+In addition to the standard `SessionStorage` functions, the returned storage exposes `deleteSessionsBy(attribute, value)`, which deletes all sessions whose `attribute` equals `value` and returns the number of deleted sessions. This requires a global secondary index on the attribute, configured via `indexes`:
+
+```typescript
+const sessionStorage = createDynamoDBSessionStorage({
+  table: "sessions",
+  idx: "_idx",
+  indexes: { familyId: "familyId-index" },
+});
+
+// e.g. sign out all devices belonging to a revoked token family
+await sessionStorage.deleteSessionsBy("familyId", familyId);
+```
 
 > [!NOTE]
 > By default, react-router only sets session data to expire when the
