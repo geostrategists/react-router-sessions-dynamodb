@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
 
       - name: Validate release type consistency
