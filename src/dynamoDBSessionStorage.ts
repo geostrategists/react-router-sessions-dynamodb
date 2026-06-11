@@ -67,6 +67,8 @@ export interface DynamoDBSessionStorage<Data = SessionData, FlashData = Data> ex
   deleteSessionsBy(attribute: keyof Data & string, value: string | number): Promise<number>;
 }
 
+const MAX_BATCH_WRITE_RETRIES = 5;
+
 /**
  * Session storage using a DynamoDB table.
  *
@@ -126,13 +128,19 @@ export function createDynamoDBSessionStorage<Data = SessionData, FlashData = Dat
         let requests: NonNullable<BatchWriteCommandInput["RequestItems"]>[string] = keys
           .slice(i, i + 25)
           .map((key) => ({ DeleteRequest: { Key: key } }));
-        while (requests.length > 0) {
+        for (let attempt = 0; requests.length > 0; attempt++) {
+          if (attempt > 0) {
+            if (attempt > MAX_BATCH_WRITE_RETRIES) {
+              throw new Error(`Failed to delete ${requests.length} sessions after ${MAX_BATCH_WRITE_RETRIES} retries`);
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100 * 2 ** (attempt - 1)));
+          }
           const batchResult = await getClient().send(
             new BatchWriteCommand({ RequestItems: { [props.table]: requests } }),
           );
-          deleted += requests.length;
-          requests = batchResult.UnprocessedItems?.[props.table] ?? [];
-          deleted -= requests.length;
+          const unprocessed = batchResult.UnprocessedItems?.[props.table] ?? [];
+          deleted += requests.length - unprocessed.length;
+          requests = unprocessed;
         }
       }
     } while (lastEvaluatedKey);

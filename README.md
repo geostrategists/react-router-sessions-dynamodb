@@ -22,7 +22,8 @@ import { createDynamoDBSessionStorage } from "~/lib/sessions";
 
 // Create a session storage instance with environment variables
 const sessionStorage = createDynamoDBSessionStorage({
-  tableName: process.env.DYNAMODB_TABLE_NAME,
+  table: process.env.DYNAMODB_TABLE_NAME,
+  idx: "_idx",
   cookie: {
     // Configure with environment variables
   },
@@ -54,7 +55,7 @@ export async function loader({ request }) {
 
 ### DynamoDBSessionStorageOptions
 
-- `tableName` (required): The name of the DynamoDB table to store sessions
+- `table` (required): The name of the DynamoDB table to store sessions
 - `idx` (required): The name of the attribute used to store the session ID
 - `ttl` (optional): The name of the TTL attribute
 - `client` (optional): A pre-configured DynamoDBDocumentClient instance
