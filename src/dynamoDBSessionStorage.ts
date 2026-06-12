@@ -52,7 +52,7 @@ interface DynamoDBSessionStorageOptions<Indexes extends string = string> {
   /**
    * Global secondary indexes on the sessions table, keyed by the session-data
    * attribute they index (the attribute must be the index's partition key).
-   * Required for #deleteSessionsBy.
+   * Required for #destroySessionsBy.
    */
   indexes?: Partial<Record<Indexes, string>>;
 }
@@ -67,7 +67,7 @@ export interface DynamoDBSessionStorage<
    * be configured as an index in the storage options.
    * Returns the number of deleted sessions.
    */
-  deleteSessionsBy<A extends Indexes>(attribute: A, value: NonNullable<Data[A]> & (string | number)): Promise<number>;
+  destroySessionsBy<A extends Indexes>(attribute: A, value: NonNullable<Data[A]> & (string | number)): Promise<number>;
 }
 
 const MAX_BATCH_WRITE_RETRIES = 5;
@@ -105,7 +105,7 @@ export function createDynamoDBSessionStorage<
     }
   };
 
-  const deleteSessionsBy = async (attribute: Indexes, value: string | number): Promise<number> => {
+  const destroySessionsBy = async (attribute: Indexes, value: string | number): Promise<number> => {
     const indexName = props.indexes?.[attribute];
     if (!indexName) {
       throw new Error(`No index configured for attribute "${attribute}"`);
@@ -229,5 +229,5 @@ export function createDynamoDBSessionStorage<
     },
   });
 
-  return { ...sessionStorage, deleteSessionsBy };
+  return { ...sessionStorage, destroySessionsBy };
 }

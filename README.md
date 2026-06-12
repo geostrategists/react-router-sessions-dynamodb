@@ -69,11 +69,11 @@ export async function loader({ request }) {
   - `secure`: Secure attribute
   - `domain`: Cookie domain
 - `sessionMaxAge` (optional): The max age of table entries when no cookie maxAge is set
-- `indexes` (optional): Global secondary indexes on the sessions table, keyed by the session-data attribute they index (the attribute must be the index's partition key). Required for `deleteSessionsBy`.
+- `indexes` (optional): Global secondary indexes on the sessions table, keyed by the session-data attribute they index (the attribute must be the index's partition key). Required for `destroySessionsBy`.
 
 ### Deleting sessions by attribute
 
-In addition to the standard `SessionStorage` functions, the returned storage exposes `deleteSessionsBy(attribute, value)`, which deletes all sessions whose `attribute` equals `value` and returns the number of deleted sessions. This requires a global secondary index on the attribute, configured via `indexes`:
+In addition to the standard `SessionStorage` functions, the returned storage exposes `destroySessionsBy(attribute, value)`, which deletes all sessions whose `attribute` equals `value` and returns the number of deleted sessions. This requires a global secondary index on the attribute, configured via `indexes`:
 
 ```typescript
 const sessionStorage = createDynamoDBSessionStorage<SessionData, SessionFlashData, "familyId">({
@@ -83,10 +83,10 @@ const sessionStorage = createDynamoDBSessionStorage<SessionData, SessionFlashDat
 });
 
 // e.g. sign out all devices belonging to a revoked token family
-await sessionStorage.deleteSessionsBy("familyId", familyId);
+await sessionStorage.destroySessionsBy("familyId", familyId);
 ```
 
-The third type parameter restricts the attributes accepted by `deleteSessionsBy` (and the keys allowed in `indexes`) to the listed session-data keys, and types the `value` parameter as the corresponding field's type. It defaults to all session-data keys.
+The third type parameter restricts the attributes accepted by `destroySessionsBy` (and the keys allowed in `indexes`) to the listed session-data keys, and types the `value` parameter as the corresponding field's type. It defaults to all session-data keys.
 
 > [!NOTE]
 > By default, react-router only sets session data to expire when the
