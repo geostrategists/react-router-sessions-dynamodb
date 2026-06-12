@@ -83,6 +83,6 @@ jobs:
           registry-url: "https://npm.pkg.github.com"
 
       - name: Publish to GitHub Packages
-        run: pnpm publish --no-git-checks --access public --tag "${{ steps.meta.outputs.tag }}" --registry https://npm.pkg.github.com/
+        run: pnpm publish --no-git-checks --provenance --access public --tag "${{ steps.meta.outputs.tag }}" --registry https://npm.pkg.github.com/
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
