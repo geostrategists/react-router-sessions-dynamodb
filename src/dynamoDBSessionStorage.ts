@@ -7,9 +7,8 @@ import {
   PutCommand,
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { createSessionStorage } from "react-router";
-
 import type { BatchWriteCommandInput } from "@aws-sdk/lib-dynamodb";
+import { createSessionStorage } from "react-router";
 import type { FlashSessionData, SessionData, SessionIdStorageStrategy, SessionStorage } from "react-router";
 
 interface DynamoDBSessionStorageOptions<Indexes extends string = string> {
@@ -201,7 +200,9 @@ export function createDynamoDBSessionStorage<
       const data = result.Item;
       if (data) {
         delete data[props.idx];
-        if (props.ttl) delete data[props.ttl];
+        if (props.ttl) {
+          delete data[props.ttl];
+        }
       }
       return data as FlashSessionData<Data, FlashData>;
     },
