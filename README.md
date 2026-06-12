@@ -22,7 +22,8 @@ import { createDynamoDBSessionStorage } from "~/lib/sessions";
 
 // Create a session storage instance with environment variables
 const sessionStorage = createDynamoDBSessionStorage({
-  tableName: process.env.DYNAMODB_TABLE_NAME,
+  table: process.env.DYNAMODB_TABLE_NAME,
+  idx: "_idx",
   cookie: {
     // Configure with environment variables
   },
@@ -54,7 +55,7 @@ export async function loader({ request }) {
 
 ### DynamoDBSessionStorageOptions
 
-- `tableName` (required): The name of the DynamoDB table to store sessions
+- `table` (required): The name of the DynamoDB table to store sessions
 - `idx` (required): The name of the attribute used to store the session ID
 - `ttl` (optional): The name of the TTL attribute
 - `client` (optional): A pre-configured DynamoDBDocumentClient instance
@@ -68,6 +69,24 @@ export async function loader({ request }) {
   - `secure`: Secure attribute
   - `domain`: Cookie domain
 - `sessionMaxAge` (optional): The max age of table entries when no cookie maxAge is set
+- `indexes` (optional): Global secondary indexes on the sessions table, keyed by the session-data attribute they index (the attribute must be the index's partition key). Required for `destroySessionsBy`.
+
+### Deleting sessions by attribute
+
+In addition to the standard `SessionStorage` functions, the returned storage exposes `destroySessionsBy(attribute, value)`, which deletes all sessions whose `attribute` equals `value` and returns the number of deleted sessions. This requires a global secondary index on the attribute, configured via `indexes`:
+
+```typescript
+const sessionStorage = createDynamoDBSessionStorage<SessionData, SessionFlashData, "familyId">({
+  table: "sessions",
+  idx: "_idx",
+  indexes: { familyId: "familyId-index" },
+});
+
+// e.g. sign out all devices belonging to a revoked token family
+await sessionStorage.destroySessionsBy("familyId", familyId);
+```
+
+The third type parameter defines the indexed attributes: the keys of `indexes` and the attributes accepted by `destroySessionsBy` are exactly the listed session-data keys, and the `value` parameter is typed as the corresponding field's type. It defaults to `never`, so `destroySessionsBy` is only callable when the indexed attributes are declared.
 
 > [!NOTE]
 > By default, react-router only sets session data to expire when the
