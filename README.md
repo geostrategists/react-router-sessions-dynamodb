@@ -86,7 +86,7 @@ const sessionStorage = createDynamoDBSessionStorage<SessionData, SessionFlashDat
 await sessionStorage.destroySessionsBy("familyId", familyId);
 ```
 
-The third type parameter restricts the attributes accepted by `destroySessionsBy` (and the keys allowed in `indexes`) to the listed session-data keys, and types the `value` parameter as the corresponding field's type. It defaults to all session-data keys.
+The third type parameter restricts the attributes accepted by `destroySessionsBy` (and the keys allowed in `indexes`) to the listed session-data keys, and types the `value` parameter as the corresponding field's type. It defaults to `never`, so `destroySessionsBy` is only callable when the indexed attributes are declared.
 
 > [!NOTE]
 > By default, react-router only sets session data to expire when the

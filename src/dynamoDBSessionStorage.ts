@@ -11,7 +11,7 @@ import type { BatchWriteCommandInput } from "@aws-sdk/lib-dynamodb";
 import { createSessionStorage } from "react-router";
 import type { FlashSessionData, SessionData, SessionIdStorageStrategy, SessionStorage } from "react-router";
 
-interface DynamoDBSessionStorageOptions<Indexes extends string = string> {
+interface DynamoDBSessionStorageOptions<Indexes extends string = never> {
   /**
    * The Cookie used to store the session id on the client, or options used
    * to automatically create one.
@@ -54,13 +54,13 @@ interface DynamoDBSessionStorageOptions<Indexes extends string = string> {
    * attribute they index (the attribute must be the index's partition key).
    * Required for #destroySessionsBy.
    */
-  indexes?: Partial<Record<Indexes, string>>;
+  indexes?: Record<Indexes, string>;
 }
 
 export interface DynamoDBSessionStorage<
   Data = SessionData,
   FlashData = Data,
-  Indexes extends keyof Data & string = keyof Data & string,
+  Indexes extends keyof Data & string = never,
 > extends SessionStorage<Data, FlashData> {
   /**
    * Deletes all sessions whose `attribute` equals `value`. The attribute must
@@ -82,7 +82,7 @@ const MAX_BATCH_WRITE_RETRIES = 5;
 export function createDynamoDBSessionStorage<
   Data = SessionData,
   FlashData = Data,
-  Indexes extends keyof Data & string = keyof Data & string,
+  Indexes extends keyof Data & string = never,
 >({ cookie, ...props }: DynamoDBSessionStorageOptions<Indexes>): DynamoDBSessionStorage<Data, FlashData, Indexes> {
   let _client: DynamoDBDocumentClient | undefined;
   const getClient = (): DynamoDBDocumentClient => {
