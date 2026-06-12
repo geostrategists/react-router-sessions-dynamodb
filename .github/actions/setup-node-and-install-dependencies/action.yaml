@@ -1,10 +1,6 @@
 name: "Setup Node and Install Dependencies"
 description: "Setup Node and run pnpm install with caches"
 
-inputs:
-  token:
-    description: "GitHub token for packages authentication"
-    required: true
 outputs:
   cache-paths:
     description: "Paths cached by the pnpm cache"
@@ -17,8 +13,6 @@ runs:
       with:
         node-version-file: .nvmrc
         package-manager-cache: false
-        registry-url: "https://npm.pkg.github.com"
-        token: ${{ inputs.token }}
 
     - name: Enable Corepack
       shell: bash
@@ -48,5 +42,3 @@ runs:
     - name: Install Dependencies
       shell: bash
       run: pnpm install --frozen-lockfile
-      env:
-        NODE_AUTH_TOKEN: ${{ inputs.token }}

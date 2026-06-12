@@ -12,7 +12,6 @@ jobs:
 
     permissions:
       contents: read
-      packages: read
 
     steps:
       - name: Checkout repository
@@ -20,8 +19,6 @@ jobs:
 
       - name: Setup Node and Install Dependencies
         uses: ./.github/actions/setup-node-and-install-dependencies
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run oxlint
         run: pnpm lint

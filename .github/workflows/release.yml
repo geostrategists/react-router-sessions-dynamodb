@@ -1,4 +1,4 @@
-name: 🚀 Release to GitHub Packages
+name: 🚀 Release
 
 on:
   release:
@@ -6,13 +6,15 @@ on:
 
 permissions:
   contents: read
-  packages: write
-  id-token: write
 
 jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # to publish to GitHub Packages
+      id-token: write # to enable OIDC for npm provenance
     steps:
       - uses: actions/checkout@v6
         with:
@@ -38,8 +40,9 @@ jobs:
 
       - name: Setup Node and Install Dependencies
         uses: ./.github/actions/setup-node-and-install-dependencies
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
+        run: npm audit signatures
 
       - name: Determine version and dist-tag
         id: meta
@@ -55,8 +58,31 @@ jobs:
       - name: Set package version
         run: pnpm version "${{ steps.meta.outputs.version }}" --no-git-tag-version --allow-same-version
 
+      - name: Build
+        run: pnpm build
+
+      # --- Publish to npmjs (public, with provenance) ---
+      - name: Configure npmjs registry
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish to npmjs
+        run: pnpm publish --no-git-checks --provenance --access public --tag "${{ steps.meta.outputs.tag }}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+      # --- Publish to GitHub Packages ---
+      - name: Configure GitHub Packages registry
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+          registry-url: "https://npm.pkg.github.com"
+
       - name: Publish to GitHub Packages
-        run: pnpm publish --no-git-checks --tag "${{ steps.meta.outputs.tag }}"
+        run: pnpm publish --no-git-checks --access public --tag "${{ steps.meta.outputs.tag }}" --registry https://npm.pkg.github.com/
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: "true"

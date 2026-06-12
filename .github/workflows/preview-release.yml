@@ -13,18 +13,15 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-      id-token: write
 
     steps:
       - uses: actions/checkout@v6
 
       - name: Setup Node and Install Dependencies
         uses: ./.github/actions/setup-node-and-install-dependencies
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build
         run: pnpm build
 
       - name: Publish Preview
-        run: pnpm dlx pkg-pr-new publish --compact
+        run: npx pkg-pr-new publish --compact
