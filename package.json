@@ -1,97 +1,68 @@
 {
   "name": "@geostrategists/react-router-sessions-dynamodb",
   "version": "0.0.1",
+  "description": "AWS DynamoDB session storage for React Router",
+  "homepage": "https://github.com/geostrategists/react-router-sessions-dynamodb#readme",
+  "bugs": {
+    "url": "https://github.com/geostrategists/react-router-sessions-dynamodb/issues"
+  },
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/geostrategists/react-router-sessions-dynamodb.git"
   },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "node": {
-        "types": "./dist/index.d.ts",
-        "module-sync": "./dist/index.mjs",
-        "default": "./dist/index.js"
+      "types": {
+        "import": "./dist/index.d.mts",
+        "require": "./dist/index.d.cts"
       },
-      "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
-      },
-      "default": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
     },
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "lint": "eslint .",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "build": "tsdown",
+    "clean": "rimraf dist",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt . '!**/*.yml' '!**/*.yaml'",
+    "format:check": "oxfmt --check . '!**/*.yml' '!**/*.yaml'",
     "typecheck": "tsc --noEmit",
-    "build": "tsc && tsup",
-    "prepack": "yarn build && yarn npmignore --auto",
-    "prepare": "husky",
-    "release": "semantic-release"
+    "prepare": "lefthook install",
+    "prepack": "pnpm build"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.767.0",
+    "@aws-sdk/lib-dynamodb": "^3.767.0",
+    "@types/node": "^25.2.3",
+    "lefthook": "^2.1.9",
+    "oxfmt": "^0.54.0",
+    "oxlint": "^1.69.0",
+    "react-router": "^7.3.0",
+    "rimraf": "^6.1.2",
+    "tsdown": "^0.22.2",
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "@aws-sdk/client-dynamodb": "^3.0.0",
     "@aws-sdk/lib-dynamodb": "^3.0.0",
     "react-router": "^7.0.0"
   },
-  "devDependencies": {
-    "@aws-sdk/client-dynamodb": "^3.767.0",
-    "@aws-sdk/lib-dynamodb": "^3.767.0",
-    "@eslint/js": "^9.22.0",
-    "@semantic-release/exec": "^7.0.3",
-    "eslint": "^9.22.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^15.5.0",
-    "npmignore": "^0.3.1",
-    "prettier": "3.5.3",
-    "react-router": "^7.3.0",
-    "semantic-release": "^24.2.3",
-    "tsup": "^8.4.0",
-    "typescript": "^5.8.2",
-    "typescript-eslint": "^8.26.1"
+  "engines": {
+    "node": ">=24"
   },
-  "packageManager": "yarn@4.7.0+sha256.293632d8a095d8ea4786eb2c5798c83c37544abed17ed31186a3ec4549a07c06",
-  "release": {
-    "plugins": [
-      "@semantic-release/commit-analyzer",
-      "@semantic-release/release-notes-generator",
-      [
-        "@semantic-release/exec",
-        {
-          "verifyConditionsCmd": "echo //npm.pkg.github.com/:_authToken=${process.env.GITHUB_TOKEN} > /tmp/github.npmrc && npm whoami --userconfig /tmp/github.npmrc --registry https://npm.pkg.github.com/",
-          "publishCmd": "npm publish --userconfig /tmp/github.npmrc --tag ${nextRelease.channel || 'latest'} --registry https://npm.pkg.github.com/ --no-git-tag-version",
-          "successCmd": "rm /tmp/github.npmrc",
-          "failCmd": "rm /tmp/github.npmrc"
-        }
-      ],
-      "@semantic-release/npm",
-      "@semantic-release/github"
-    ]
-  },
-  "publishConfig": {
-    "ignore": [
-      "!dist/**",
-      "src/",
-      ".*",
-      "tsconfig.json",
-      "tsup.config.ts"
-    ],
-    "access": "public",
-    "provenance": true
-  },
-  "lint-staged": {
-    "*.{ts,tsx,js,cjs,mjs}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "!(*.ts|*.tsx|*.js|*.cjs|*.mjs)": "prettier --ignore-unknown --write"
-  },
-  "prettier": {
-    "printWidth": 120,
-    "trailingComma": "all"
-  }
+  "packageManager": "pnpm@11.5.3+sha512.7ac1c919341c213a34dc0d02afb7143c5c26ac26ee8c4782deea821b8ac64d2134a081fd8941dae6e29bbb48f58dfc2b7fbceeccc07cb2f09d219d342a4969ed"
 }

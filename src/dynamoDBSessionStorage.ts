@@ -1,7 +1,6 @@
 import { ConditionalCheckFailedException, DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { createSessionStorage } from "react-router";
-
 import type { FlashSessionData, SessionData, SessionIdStorageStrategy, SessionStorage } from "react-router";
 
 interface DynamoDBSessionStorageOptions {
@@ -123,7 +122,9 @@ export function createDynamoDBSessionStorage<Data = SessionData, FlashData = Dat
       const data = result.Item;
       if (data) {
         delete data[props.idx];
-        if (props.ttl) delete data[props.ttl];
+        if (props.ttl) {
+          delete data[props.ttl];
+        }
       }
       return data as FlashSessionData<Data, FlashData>;
     },
